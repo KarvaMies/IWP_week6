@@ -68,4 +68,9 @@ const getData = async () => {
   return data;
 };
 
+const buildChart = async () => {
+  const data = await getData();
+  console.log(data);
+};
+
 getData();
