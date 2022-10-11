@@ -73,4 +73,4 @@ const buildChart = async () => {
   console.log(data);
 };
 
-getData();
+buildChart();
