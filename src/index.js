@@ -52,7 +52,7 @@ const jsonQuery = {
   }
 };
 
-const getData = async () => {
+const getDataPost = async () => {
   const url =
     "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
 
@@ -69,16 +69,16 @@ const getData = async () => {
 };
 
 const buildChart = async () => {
-  const data = await getData();
+  const data = await getDataPost();
   //console.log(data);
 
   const areas = Object.keys(data.dimension.Alue.category.label);
   const labels = Object.values(data.dimension.Vuosi.category.label);
   const values = data.value;
 
-  console.log(areas);
-  console.log(labels);
-  console.log(values);
+  //console.log(areas);
+  //console.log(labels);
+  //console.log(values);
 
   areas.forEach((area, index) => {
     let areaPopulation = [];
@@ -106,3 +106,49 @@ const buildChart = async () => {
 };
 
 buildChart();
+
+const getDataGet = async () => {
+  const url =
+    "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
+
+  const res = await fetch(url);
+  const data = await res.json();
+  //console.log(data);
+  return data;
+};
+
+const lolxd = async (municipality) => {
+  const data = await getDataGet();
+  //console.log(data)
+
+  const municipalities = data.variables[1].valueTexts;
+  let code;
+
+  //console.log(municipality)
+  //console.log(municipalities);
+  //console.log(municipalities[165]);
+
+  for (let i = 0; i < municipalities.length; i++) {
+    if (municipalities[i].toLowerCase() === municipality) {
+      code = data.variables[1].values[i];
+
+      console.log(code + ": " + data.variables[1].valueTexts[i]);
+    }
+  }
+};
+
+/*
+TODO - lisää lolxd-funktioon funktiokutsu buildChart(keyword ja saa se toimimaan)
+eli hakutoiminto -> muuttaa POST-requestia -> etsii haettavan kunnan (rivi 39)
+ja muista tsekata alussa, jos muuttuja.lenght === 0 -> koko suomen kuvaaja eli kuten nyt
+*/
+
+const submitButton = document.getElementById("submit-data");
+submitButton.addEventListener("click", (event) => {
+  const url =
+    "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
+
+  const keyword = document.getElementById("input-area").value.toLowerCase();
+  console.log(keyword);
+  lolxd(keyword);
+});
