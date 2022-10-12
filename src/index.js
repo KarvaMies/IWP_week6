@@ -68,7 +68,20 @@ const getDataPost = async () => {
   return data;
 };
 
-const buildChart = async () => {
+const buildChart = async (areaCode, name) => {
+  let title = "Population growth of Finland";
+
+  if (typeof areaCode !== "undefined") {
+    console.log("areaCode is not undefined");
+    jsonQuery.query[1].selection.values.shift();
+    jsonQuery.query[1].selection.values.push(areaCode);
+  } else {
+    console.log("areaCode is undefined");
+  }
+  console.log(areaCode);
+
+  console.log(jsonQuery.query[1].selection.values);
+
   const data = await getDataPost();
   //console.log(data);
 
@@ -91,21 +104,23 @@ const buildChart = async () => {
     };
   });
 
+  if (typeof name !== "undefined") {
+    title = "Population growth of " + name;
+  }
+
   const chartData = {
     labels: labels,
     datasets: areas
   };
 
   const chart = new frappe.Chart("#chart", {
-    title: "Population growth of Finland",
+    title: title,
     data: chartData,
     type: "line",
     height: 450,
     colors: ["#eb5146"]
   });
 };
-
-buildChart();
 
 const getDataGet = async () => {
   const url =
@@ -117,38 +132,36 @@ const getDataGet = async () => {
   return data;
 };
 
-const lolxd = async (municipality) => {
+const findArea = async (municipality) => {
   const data = await getDataGet();
   //console.log(data)
 
   const municipalities = data.variables[1].valueTexts;
-  let code;
+  let areaCode;
 
   //console.log(municipality)
   //console.log(municipalities);
   //console.log(municipalities[165]);
 
   for (let i = 0; i < municipalities.length; i++) {
-    if (municipalities[i].toLowerCase() === municipality) {
-      code = data.variables[1].values[i];
+    if (municipalities[i].toLowerCase() === municipality.toLowerCase()) {
+      areaCode = data.variables[1].values[i];
 
-      console.log(code + ": " + data.variables[1].valueTexts[i]);
+      console.log(areaCode + ": " + data.variables[1].valueTexts[i]);
     }
   }
+
+  buildChart(areaCode, municipality);
 };
 
-/*
-TODO - lisää lolxd-funktioon funktiokutsu buildChart(keyword ja saa se toimimaan)
-eli hakutoiminto -> muuttaa POST-requestia -> etsii haettavan kunnan (rivi 39)
-ja muista tsekata alussa, jos muuttuja.lenght === 0 -> koko suomen kuvaaja eli kuten nyt
-*/
+buildChart();
 
 const submitButton = document.getElementById("submit-data");
 submitButton.addEventListener("click", (event) => {
   const url =
     "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
 
-  const keyword = document.getElementById("input-area").value.toLowerCase();
+  const keyword = document.getElementById("input-area").value;
   console.log(keyword);
-  lolxd(keyword);
+  findArea(keyword);
 });
