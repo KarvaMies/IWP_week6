@@ -53,6 +53,8 @@ const jsonQuery = {
   }
 };
 
+const municipalitiesMap = new Map();
+
 const getDataPost = async () => {
   const url =
     "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
@@ -115,30 +117,29 @@ const buildChart = async (areaCode, name) => {
   });
 };
 
-const getDataGet = async () => {
+const initializeMunicipalityData = async () => {
   const url =
     "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
 
   const res = await fetch(url);
   const data = await res.json();
-  return data;
+
+  for (let i = 0; i < data.variables[1].values.length; i++) {
+    municipalitiesMap.set(
+      data.variables[1].valueTexts[i].toLowerCase(),
+      data.variables[1].values[i]
+    );
+  }
+
+  console.log(municipalitiesMap);
 };
 
-const findArea = async (municipality) => {
-  const data = await getDataGet();
-
-  const municipalities = data.variables[1].valueTexts;
+const findArea = (municipality) => {
   let areaCode;
 
-  for (let i = 0; i < municipalities.length; i++) {
-    if (municipalities[i].toLowerCase() === municipality.toLowerCase()) {
-      areaCode = data.variables[1].values[i];
-
-      console.log(areaCode + ": " + data.variables[1].valueTexts[i]);
-      break;
-    }
-  }
-  if (typeof areaCode === "undefined") {
+  if (municipalitiesMap.has(municipality.toLowerCase())) {
+    areaCode = municipalitiesMap.get(municipality.toLowerCase());
+  } else {
     areaCode = "SSS";
     municipality = "Finland";
   }
@@ -147,13 +148,12 @@ const findArea = async (municipality) => {
   buildChart(areaCode, municipality);
 };
 
+initializeMunicipalityData();
 buildChart();
 
 const submitButton = document.getElementById("submit-data");
 submitButton.addEventListener("click", (event) => {
   event.preventDefault();
-  const url =
-    "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
 
   const keyword = document.getElementById("input-area").value;
   console.log();
