@@ -78,20 +78,12 @@ const buildChart = async (areaCode, name) => {
   } else {
     console.log("areaCode is undefined");
   }
-  console.log(areaCode);
-
-  console.log(jsonQuery.query[1].selection.values);
 
   const data = await getDataPost();
-  //console.log(data);
 
   const areas = Object.keys(data.dimension.Alue.category.label);
   const labels = Object.values(data.dimension.Vuosi.category.label);
   const values = data.value;
-
-  //console.log(areas);
-  //console.log(labels);
-  //console.log(values);
 
   areas.forEach((area, index) => {
     let areaPopulation = [];
@@ -128,29 +120,29 @@ const getDataGet = async () => {
 
   const res = await fetch(url);
   const data = await res.json();
-  //console.log(data);
   return data;
 };
 
 const findArea = async (municipality) => {
   const data = await getDataGet();
-  //console.log(data)
 
   const municipalities = data.variables[1].valueTexts;
   let areaCode;
-
-  //console.log(municipality)
-  //console.log(municipalities);
-  //console.log(municipalities[165]);
 
   for (let i = 0; i < municipalities.length; i++) {
     if (municipalities[i].toLowerCase() === municipality.toLowerCase()) {
       areaCode = data.variables[1].values[i];
 
       console.log(areaCode + ": " + data.variables[1].valueTexts[i]);
+      break;
     }
   }
+  if (typeof areaCode === "undefined") {
+    areaCode = "SSS";
+    municipality = "Finland";
+  }
 
+  console.log("Municipality: " + municipality + "\nArea code: " + areaCode);
   buildChart(areaCode, municipality);
 };
 
@@ -158,10 +150,11 @@ buildChart();
 
 const submitButton = document.getElementById("submit-data");
 submitButton.addEventListener("click", (event) => {
+  event.preventDefault();
   const url =
     "https://statfin.stat.fi/PxWeb/api/v1/en/StatFin/synt/statfin_synt_pxt_12dy.px";
 
   const keyword = document.getElementById("input-area").value;
-  console.log(keyword);
+  console.log();
   findArea(keyword);
 });
