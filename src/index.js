@@ -1,4 +1,5 @@
 import "./styles.css";
+import { Chart } from "frappe-charts/dist/frappe-charts.min.esm";
 
 const jsonQuery = {
   query: [
@@ -105,7 +106,7 @@ const buildChart = async (areaCode, name) => {
     datasets: areas
   };
 
-  const chart = new frappe.Chart("#chart", {
+  const chart = new Chart("#chart", {
     title: title,
     data: chartData,
     type: "line",
