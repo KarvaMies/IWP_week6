@@ -54,6 +54,9 @@ const jsonQuery = {
 };
 
 const municipalitiesMap = new Map();
+let areaPopulation = [];
+let labels = [];
+let keyword = "";
 
 const getDataPost = async () => {
   const url =
@@ -71,7 +74,7 @@ const getDataPost = async () => {
   return data;
 };
 
-const buildChart = async (areaCode, name) => {
+const buildChart = async (areaCode, name, newDataPoint) => {
   let title = "Population growth of Finland";
 
   if (typeof areaCode !== "undefined") {
@@ -85,11 +88,15 @@ const buildChart = async (areaCode, name) => {
   const data = await getDataPost();
 
   const areas = Object.keys(data.dimension.Alue.category.label);
-  const labels = Object.values(data.dimension.Vuosi.category.label);
+  if (newDataPoint === 0) {
+    labels = Object.values(data.dimension.Vuosi.category.label);
+  } else {
+    labels.push(parseInt(labels[labels.length - 1], 10) + 1);
+    areaPopulation.push(newDataPoint);
+  }
   const values = data.value;
 
   areas.forEach((area, index) => {
-    let areaPopulation = [];
     for (let i = 0; i < labels.length; i++) {
       areaPopulation.push(values[i * areas.length + index]);
     }
@@ -99,7 +106,7 @@ const buildChart = async (areaCode, name) => {
     };
   });
 
-  if (typeof name !== "undefined") {
+  if (typeof name !== "undefined" && name !== "WHOLE COUNTRY") {
     title = "Population growth of " + name;
   }
 
@@ -134,7 +141,7 @@ const initializeMunicipalityData = async () => {
   console.log(municipalitiesMap);
 };
 
-const findArea = (municipality) => {
+const findArea = (municipality, newDataPoint) => {
   let areaCode;
 
   if (municipalitiesMap.has(municipality.toLowerCase())) {
@@ -145,17 +152,37 @@ const findArea = (municipality) => {
   }
 
   console.log("Municipality: " + municipality + "\nArea code: " + areaCode);
-  buildChart(areaCode, municipality);
+  if (newDataPoint === 0) {
+    buildChart(areaCode, municipality, 0);
+  }
+  return [areaCode, municipality];
 };
 
 initializeMunicipalityData();
-buildChart();
+buildChart("SSS", "WHOLE COUNTRY", 0);
 
 const submitButton = document.getElementById("submit-data");
 submitButton.addEventListener("click", (event) => {
   event.preventDefault();
 
-  const keyword = document.getElementById("input-area").value;
+  keyword = document.getElementById("input-area").value;
   console.log();
   findArea(keyword);
+});
+
+const calculateDataPoint = document.getElementById("add-data");
+calculateDataPoint.addEventListener("click", (event) => {
+  event.preventDefault();
+
+  let dataPoint = 0;
+  let i = 1;
+  for (i; i < areaPopulation.length; i++) {
+    dataPoint += areaPopulation[i] - areaPopulation[i - 1];
+  }
+  dataPoint = Math.round(
+    dataPoint / (i - 1) + areaPopulation[areaPopulation.length - 1]
+  );
+  const aCode = findArea(keyword, dataPoint);
+  console.log(aCode);
+  buildChart(aCode[0], aCode[1], dataPoint);
 });
